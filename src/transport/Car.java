@@ -7,36 +7,10 @@ public class Car {
         private final boolean remoteStart;
         private final boolean keylessAccess;
 
-        public Key(boolean remoteStart) {
-            if (isValid(remoteStart) ) {
-                if (remoteStart) {
-                    this.remoteStart = true;
-                    this.keylessAccess = false;
-                } else {
-                    this.remoteStart = false;
-                    this.keylessAccess = true;
-                }
-            } else {
-                throw new IllegalArgumentException("Invalid key parameters");
-            }
-        }
 
         public Key(boolean remoteStart, boolean keylessAccess) {
-            if (isValid(remoteStart) && isValid(keylessAccess)) {
-                if (remoteStart) {
-                    this.remoteStart = true;
-                    this.keylessAccess = false;
-                } else {
-                    this.remoteStart = false;
-                    this.keylessAccess = true;
-                }
-            } else {
-                throw new IllegalArgumentException("Invalid key parameters");
-            }
-        }
-
-        private boolean isValid(boolean value) {
-            return true;
+                this.remoteStart = remoteStart;
+                this.keylessAccess = keylessAccess;
         }
 
         public boolean isRemoteStart() {
@@ -49,7 +23,11 @@ public class Car {
 
         @Override
         public String toString() {
-            return String.format("Key: %nRemote start: %s%nKeyless access: %s%n", remoteStart, keylessAccess);
+            return String.format("%n" +
+                            "Remote start: %s%n" +
+                            "Keyless access: %s",
+                    remoteStart ? "On" : "Off",
+                    keylessAccess ? "On" : "Off");
         }
     }
 
@@ -76,18 +54,19 @@ public class Car {
         this.isWinterTires = checkTires(LocalDate.now().getMonthValue());
     }
 
-    public Car(String brand, String model, float engineVolume, String color, int year, String country, String transmission, String carcaseType, String registrationNumber, int seats) {
+    public Car(String brand, String model, float engineVolume, String color, int year, String country, String transmission, String carcaseType, String registrationNumber, int seats, Key key) {
         this.brand = (brand != null && !brand.isEmpty() && !brand.isBlank()) ? brand : "default";
         this.model = (model != null && !model.isEmpty() && !model.isBlank()) ? model : "default";
-        this.engineVolume = (engineVolume > 0) ? engineVolume : 1.5f;
-        this.color = (color != null && !color.isEmpty()) ? color : "White";
+        setEngineVolume(engineVolume);
+        setColor(color);
         this.year = (year > 0) ? year : 2000;
         this.country = (country != null && !country.isEmpty()) ? country : "default";
-        this.transmission = (transmission != null && !transmission.isEmpty() && !transmission.isBlank()) ? transmission : "Manual";
+        setTransmission(transmission);
         this.carcaseType = (carcaseType != null && !carcaseType.isEmpty() && !carcaseType.isBlank()) ? carcaseType : "Sedan";
-        this.registrationNumber = (registrationNumber != null && !registrationNumber.isEmpty() && !registrationNumber.isBlank()) ? registrationNumber : "AA 0000 RU";
+        setRegistrationNumber(registrationNumber);
         this.seats = Math.max(seats, 0);
         this.isWinterTires = checkTires(LocalDate.now().getMonthValue());
+        setKey(key);
     }
 
     public String getBrand() {
@@ -119,11 +98,7 @@ public class Car {
     }
 
     public void setEngineVolume(float engineVolume) {
-        if (engineVolume > 0) {
-            this.engineVolume = engineVolume;
-        } else {
-            this.engineVolume = 1.2f;
-        }
+        this.engineVolume = (engineVolume > 0) ? engineVolume : 1.5f;
     }
 
     public String getColor() {
@@ -131,11 +106,7 @@ public class Car {
     }
 
     public void setColor(String color) {
-        if (color != null && !color.isEmpty() && !color.isBlank()) {
-            this.color = color;
-        } else {
-            this.color = "Black";
-        }
+        this.color = (color != null && !color.isEmpty()) ? color : "White";
     }
 
     public String getTransmission() {
@@ -143,11 +114,11 @@ public class Car {
     }
 
     public void setTransmission(String transmission) {
-        if (transmission != null && !transmission.isEmpty() && !transmission.isBlank()) {
-            this.transmission = transmission;
-        } else {
-            this.transmission = "Manual";
-        }
+        this.transmission = (transmission != null &&
+                !transmission.isEmpty() &&
+                !transmission.isBlank() &&
+                !transmission.equals("Unknown")) ?
+                transmission : "Manual";
     }
 
     public String getRegistrationNumber() {
@@ -155,11 +126,10 @@ public class Car {
     }
 
     public void setRegistrationNumber(String registrationNumber) {
-        if (registrationNumber != null && !registrationNumber.isEmpty() && !registrationNumber.isBlank()) {
-            this.registrationNumber = registrationNumber;
-        } else {
-            this.registrationNumber = "AA 0000 RU";
-        }
+        this.registrationNumber = (registrationNumber != null &&
+                !registrationNumber.isEmpty() &&
+                !registrationNumber.isBlank()) ?
+                registrationNumber : "AA 0000 RU";
     }
 
     private boolean checkTires(int month) {
@@ -169,7 +139,24 @@ public class Car {
 
     @Override
     public String toString() {
-        return String.format("Brand: %s%nModel: %s%nEngine volume: %.1f%nColor: %s%nYear: %d%nCountry: %s%nTransmission: %s%nCarcase type: %s%nRegistration number: %s%nSeats: %d%nWinter tires: %s%n", this.brand, this.model, this.engineVolume, this.color, this.year, this.country, this.transmission, this.carcaseType, this.registrationNumber, this.seats, this.isWinterTires);
+        return String.format(
+                "Brand: %s%n" +
+                        "Model: %s%n" +
+                        "Engine volume: %.1f%n" +
+                        "Color: %s%nYear: %d%n" +
+                        "Country: %s%n" +
+                        "Transmission: %s%n" +
+                        "Carcase type: %s%n" +
+                        "Registration number: %s%n" +
+                        "Seats: %d%n" +
+                        "Tires: %s%n" +
+                        "Key: %s",
+                brand, model,
+                engineVolume, color,
+                year, country, transmission,
+                carcaseType, registrationNumber,
+                seats, (isWinterTires ? "winter" : "summer"),
+                key);
     }
 
     public Key getKey() {
@@ -177,6 +164,9 @@ public class Car {
     }
 
     public void setKey(Key key) {
+        if (key == null) {
+            key = new Key(false, false);
+        }
         this.key = key;
     }
 }
